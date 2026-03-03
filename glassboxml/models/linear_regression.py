@@ -8,6 +8,7 @@ class LinearRegression:
         self.b = 0
         self.learning_rate = 0
         self.loss = 0
+        self.epsilon = 1e-6
         pass
 
     def compute_b(self, computed_pts, data):
@@ -49,7 +50,7 @@ class LinearRegression:
 
         return new_data
     
-    def run(self, data):
+    def fit_closed_form(self, data):
         av_x = sum([p[0] for p in data]) / len(data)
         av_y = sum([p[1] for p in data]) / len(data)
 
@@ -58,6 +59,34 @@ class LinearRegression:
 
         self.w = numerator / denominator
         self.b = av_y - self.w * av_x
+
+    def fit_gradient_descent(self, data, epochs, learning_rate):
+        for epoch in range(epochs):
+            computed_pts = self.compute_points(data)
+
+            # Calculate gradient for weight
+            sum = 0
+            for i in range(len(computed_pts)):
+                sum += computed_pts[i][0] * (data[i][1] - computed_pts[i][1])
+            dw = (-2) / len(data) * sum
+
+            # Calculate gradient for b
+            sum = 0
+            for i in range(len(computed_pts)):
+                sum += data[i][1] - computed_pts[i][1]
+            db = (-2) / len(data) * sum
+
+            if abs(dw) < self.epsilon and abs(db) < self.epsilon:
+                print("Converged at epoch", epoch)
+                break
+
+            #update weight and b
+            self.w = self.w - learning_rate*dw
+            self.b = self.b - learning_rate*db
+
+            if (epoch % 20 == 0):
+                print("Updated weight: ", self.w)
+                print("Updated b:", self.b, "\n")
 
     def plot(self, data):
         # Separate original data
