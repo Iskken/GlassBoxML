@@ -1,4 +1,4 @@
-from linear_regression import LinearRegression
+from glassboxml.models.linear_regression import LinearRegression
 
 # Example dataset
 data = [(1,2), (2,3), (3,5), (4,4)]
