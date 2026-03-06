@@ -9,6 +9,7 @@ class LinearRegression:
         self.learning_rate = 0
         self.loss = 0
         self.epsilon = 1e-6
+        self.losses = []
         pass
 
     def compute_b(self, computed_pts, data):
@@ -63,7 +64,8 @@ class LinearRegression:
     def fit_gradient_descent(self, data, epochs, learning_rate):
         for epoch in range(epochs):
             computed_pts = self.compute_points(data)
-
+            self.losses.append(self.compute_loss(computed_pts=computed_pts, data=data))
+            
             # Calculate gradient for weight
             sum = 0
             for i in range(len(computed_pts)):
