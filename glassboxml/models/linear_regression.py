@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 
 class LinearRegression:
     def __init__(self):
-        self.w = 0
         self.b = 0
         self.learning_rate = 0
         self.loss = 0
@@ -12,56 +11,69 @@ class LinearRegression:
         self.losses = []
         pass
 
-    def compute_b(self, computed_pts, data):
-        av_x = 0
-        av_y = 0
-        for point in data:
-            av_x += point[0]
-            av_y += point[1]
+    def compute_b(self, computed_pts, X, y):
+        # av_x = 0
+        # av_y = 0
+        # for point in data:
+        #     av_x += point[0]
+        #     av_y += point[1]
 
-        av_x = av_x / len(data)
-        av_y = av_y / len(data)
+        # av_x = av_x / len(data)
+        # av_y = av_y / len(data)
 
-        b = av_y - self.w * av_x
+        # b = av_y - self.w * av_x
+        # return b
+
+        b = np.mean(y) - self.w @ np.mean(X)
         return b
 
-    def compute_weight(self, computed_pts, data):
-        av_x = 0
-        av_y = 0
-        for point in data:
-            av_x += point[0]
-            av_y += point[1]
+    def compute_weight(self, X,y, pred_y):
+        # av_x = 0
+        # av_y = 0
+        # for point in data:
+        #     av_x += point[0]
+        #     av_y += point[1]
 
-        av_x = av_x / len(data)
-        av_y = av_y / len(data)
+        # av_x = av_x / len(data)
+        # av_y = av_y / len(data)
 
-        numerator = 0
-        denumerator = 0
-        for point in computed_pts:
-            numerator += (point[0] - av_x) * (point[1] - av_y)
-            denumerator += math.pow(point[0] - av_x,2)
+        # numerator = 0
+        # denumerator = 0
+        # for point in computed_pts:
+        #     numerator += (point[0] - av_x) * (point[1] - av_y)
+        #     denumerator += math.pow(point[0] - av_x,2)
 
-        weight = numerator / denumerator
-        return weight 
+        # weight = numerator / denumerator
+        # return weight 
+        # X is n by 1, y is n by 1, so (X - np.mean(X)).T @ (y - np.mean(y)) is 1 by 1,
+        # and np.sum((X - np.mean(X))**2) is a scalar, so the result is a scalar
+        w = (X - np.mean(X)).T @ (y - np.mean(y)) / np.sum((X - np.mean(X))**2)
+        return w
 
-    def compute_points(self, data):
-        new_data = []
-        for point in data:
-            new_data.append((point[0], self.w * point[0] + self.b))
+    def predict(self, X):
+        # new_data = []
+        # for point in data:
+        #     new_data.append((point[0], self.w * point[0] + self.b))
 
-        return new_data
+        # return new_data
+        pred_y = X @ self.w + self.b
+        return pred_y
     
-    def fit_closed_form(self, data):
-        av_x = sum([p[0] for p in data]) / len(data)
-        av_y = sum([p[1] for p in data]) / len(data)
+    def fit_closed_form(self, X, y):
+        av_x = np.mean(X)
+        av_y = np.mean(y)
 
-        numerator = sum((p[0] - av_x)*(p[1] - av_y) for p in data)
-        denominator = sum((p[0] - av_x)**2 for p in data)
+        numerator = (X - av_x).T @ (y - av_y)
+        denominator = np.sum((X - av_x)**2)
 
         self.w = numerator / denominator
         self.b = av_y - self.w * av_x
 
-    def fit_gradient_descent(self, data, epochs, learning_rate):
+    def fit_gradient_descent(self, X, y, epochs, learning_rate):
+        # Initialize weights and bias
+        self.w = np.zeros(len(X[0]))
+        self.b = 0
+
         for epoch in range(epochs):
             computed_pts = self.compute_points(data)
             self.losses.append(self.compute_loss(computed_pts=computed_pts, data=data))
