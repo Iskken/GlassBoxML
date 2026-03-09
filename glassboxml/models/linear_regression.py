@@ -11,7 +11,7 @@ class LinearRegression:
         self.losses = []
         pass
 
-    def compute_b(self, computed_pts, X, y):
+    def compute_b(self, X, y):
         b = np.mean(y) - self.w @ np.mean(X)
         return b
 
@@ -51,7 +51,7 @@ class LinearRegression:
             # Calculate gradient for b
             db = (-2) / n_samples * np.sum(y - pred_y)
 
-            if abs(dw) < self.epsilon and abs(db) < self.epsilon:
+            if np.linalg.norm(dw) < self.epsilon and abs(db) < self.epsilon:
                 print("Converged at epoch", epoch)
                 break
 
