@@ -1,8 +1,8 @@
 import numpy as np
 
 class Regularization:
-    def __init__(self):
-        self.lambda_ = 0
+    def __init__(self, lambda_=0):
+        self.lambda_ = lambda_
         pass
 
     def loss(self, w):
@@ -12,8 +12,8 @@ class Regularization:
         return NotImplementedError
 
 class L1Regularization(Regularization):
-    def __init__(self):
-        self.lambda_ = 0
+    def __init__(self, lambda_=0):
+        self.lambda_ = lambda_
         pass
 
     def loss(self, w):
@@ -23,8 +23,8 @@ class L1Regularization(Regularization):
         return self.lambda_ * np.sign(w)
 
 class L2Regularization(Regularization):
-    def __init__(self):
-        self.lambda_ = 0
+    def __init__(self, lambda_=0):
+        self.lambda_ = lambda_
         pass
 
     def loss(self, w):

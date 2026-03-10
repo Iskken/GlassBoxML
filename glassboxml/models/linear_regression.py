@@ -1,9 +1,11 @@
-import glassboxml.metrics.regression as regression_metrics
+import glassboxml.losses.mse as mse
 import numpy as np
 import matplotlib.pyplot as plt
+from glassboxml.losses.regularization import L1Regularization, L2Regularization
 
 class LinearRegression:
-    def __init__(self):
+    def __init__(self, regularization=None):
+        self.regularization = regularization
         self.b = 0
         self.learning_rate = 0
         self.loss = 0
@@ -43,10 +45,10 @@ class LinearRegression:
 
         for epoch in range(epochs):
             pred_y = self.predict(X)
-            self.losses.append(regression_metrics.mse(y, pred_y))
+            self.losses.append(mse.mse_loss(y, pred_y))
 
             # Calculate gradient for weight
-            dw = (-2) / n_samples * X.T @ (y - pred_y)
+            dw = (-2) / n_samples * X.T @ (y - pred_y) + (self.regularization.gradient(self.w) if self.regularization else 0)
 
             # Calculate gradient for b
             db = (-2) / n_samples * np.sum(y - pred_y)

@@ -11,6 +11,8 @@ X, y, w_true, b_true = generate_regression_dataset(
     n_samples=1000,
     noise_std=0.3
 )
-gradientDescentModel = LinearRegression()
-gradientDescentModel.fit_gradient_descent(X, y, epochs=1000, learning_rate=0.01)
-print(gradientDescentModel.w, gradientDescentModel.b)
+for l in [0, 0.01, 0.1, 1, 10]:
+    print(f"Lambda: {l}")
+    gradientDescentModel = LinearRegression(regularization=L2Regularization(lambda_=l))
+    gradientDescentModel.fit_gradient_descent(X, y, epochs=1000, learning_rate=0.01)
+    print(gradientDescentModel.w, gradientDescentModel.b)
