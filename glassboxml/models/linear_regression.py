@@ -1,9 +1,11 @@
-import math
+import glassboxml.losses.mse as mse
 import numpy as np
 import matplotlib.pyplot as plt
+from glassboxml.losses.regularization import L1Regularization, L2Regularization
 
 class LinearRegression:
-    def __init__(self):
+    def __init__(self, regularization=None):
+        self.regularization = regularization
         self.b = 0
         self.learning_rate = 0
         self.loss = 0
@@ -11,7 +13,7 @@ class LinearRegression:
         self.losses = []
         pass
 
-    def compute_b(self, computed_pts, X, y):
+    def compute_b(self, X, y):
         b = np.mean(y) - self.w @ np.mean(X)
         return b
 
@@ -43,15 +45,15 @@ class LinearRegression:
 
         for epoch in range(epochs):
             pred_y = self.predict(X)
-            self.losses.append(self.compute_loss(pred_y, y))
+            self.losses.append(mse.mse_loss(y, pred_y))
 
             # Calculate gradient for weight
-            dw = (-2) / n_samples * X.T @ (y - pred_y)
+            dw = (-2) / n_samples * X.T @ (y - pred_y) + (self.regularization.gradient(self.w) if self.regularization else 0)
 
             # Calculate gradient for b
             db = (-2) / n_samples * np.sum(y - pred_y)
 
-            if abs(dw) < self.epsilon and abs(db) < self.epsilon:
+            if np.linalg.norm(dw) < self.epsilon and abs(db) < self.epsilon:
                 print("Converged at epoch", epoch)
                 break
 
@@ -65,7 +67,7 @@ class LinearRegression:
 
     def plot(self, X, y):
         # Create smooth line range
-        x_line = np.linspace(min(X), max(y), 100)
+        x_line = np.linspace(np.min(X), np.max(X), 100)
         y_line = self.w * x_line + self.b
 
         # Plot data points
@@ -79,7 +81,3 @@ class LinearRegression:
         plt.ylabel("Y")
 
         plt.show()
-
-    def compute_loss(self, pred_y, y):
-        loss = np.sum((pred_y - y)**2)
-        return loss
