@@ -1,4 +1,4 @@
-import math
+import glassboxml.metrics.regression as regression_metrics
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -43,7 +43,7 @@ class LinearRegression:
 
         for epoch in range(epochs):
             pred_y = self.predict(X)
-            self.losses.append(self.compute_loss(pred_y, y))
+            self.losses.append(regression_metrics.mse(y, pred_y))
 
             # Calculate gradient for weight
             dw = (-2) / n_samples * X.T @ (y - pred_y)
@@ -65,7 +65,7 @@ class LinearRegression:
 
     def plot(self, X, y):
         # Create smooth line range
-        x_line = np.linspace(min(X), max(y), 100)
+        x_line = np.linspace(np.min(X), np.max(X), 100)
         y_line = self.w * x_line + self.b
 
         # Plot data points
@@ -79,7 +79,3 @@ class LinearRegression:
         plt.ylabel("Y")
 
         plt.show()
-
-    def compute_loss(self, pred_y, y):
-        loss = np.sum((pred_y - y)**2)
-        return loss

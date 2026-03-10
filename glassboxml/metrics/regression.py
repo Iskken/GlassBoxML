@@ -1,7 +1,7 @@
+import glassboxml.losses.mse as mse
 import numpy as np
 
-def mse(y_true, y_pred):
-    return np.mean((y_true - y_pred)**2)
+#Later might add r2 score, mae, mape, etc.
 
 def rmse(y_true, y_pred):
-    return np.sqrt(mse(y_true, y_pred))
+    return np.sqrt(mse.mse_loss(y_true, y_pred))
