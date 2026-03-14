@@ -11,5 +11,3 @@ class GradientDescent:
         """
         for key in params.keys():
             params[key] -= self.lr * grads[key]
-
-        return params

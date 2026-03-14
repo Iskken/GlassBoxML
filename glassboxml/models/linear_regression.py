@@ -69,7 +69,7 @@ class LinearRegression:
                 'b': db
             }
 
-            params = optimizer.step(params, grads)
+            optimizer.step(params, grads)
 
             #update weight and b
             self.w = params['w']
