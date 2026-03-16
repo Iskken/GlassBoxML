@@ -6,10 +6,10 @@ class Regularization:
         pass
 
     def loss(self, w):
-        return NotImplementedError
+        raise NotImplementedError
     
     def gradient(self, w):
-        return NotImplementedError
+        raise NotImplementedError
 
 class L1Regularization(Regularization):
     def __init__(self, lambda_=0):
