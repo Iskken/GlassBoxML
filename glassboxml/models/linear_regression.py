@@ -2,6 +2,7 @@ import glassboxml.losses.mse as mse
 import numpy as np
 import matplotlib.pyplot as plt
 from glassboxml.losses.regularization import L1Regularization, L2Regularization
+from glassboxml.optimizers.gradient_descent import GradientDescent
 
 class LinearRegression:
     def __init__(self, regularization=None):
@@ -42,6 +43,7 @@ class LinearRegression:
         self.w = np.zeros(len(X[0]))
         self.b = 0
         n_samples = len(X)
+        optimizer = GradientDescent(learning_rate)
 
         for epoch in range(epochs):
             pred_y = self.predict(X)
@@ -57,9 +59,21 @@ class LinearRegression:
                 print("Converged at epoch", epoch)
                 break
 
+            params ={
+                'w': self.w,
+                'b': self.b
+            }
+
+            grads = {
+                'w': dw,
+                'b': db
+            }
+
+            optimizer.step(params, grads)
+
             #update weight and b
-            self.w = self.w - learning_rate*dw
-            self.b = self.b - learning_rate*db
+            self.w = params['w']
+            self.b = params['b']
 
             if (epoch % 100 == 0):
                 print("Updated weight: ", self.w)
