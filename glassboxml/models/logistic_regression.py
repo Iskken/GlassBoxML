@@ -6,6 +6,7 @@ class LogisticRegression:
     def __init__(self, regularization=None):
         self.regularization = regularization
         self.epsilon = 1e-6
+        self.losses = []
         pass
     
     def sigmoid(self, z):
@@ -46,6 +47,9 @@ class LogisticRegression:
             }
 
             optimizer.step(params, grads)
+
+            loss = -np.mean(y * np.log(y_pred + self.epsilon) + (1 - y) * np.log(1 - y_pred + self.epsilon))
+            self.losses.append(loss)
 
             self.w = params['w']
             self.b = params['b']
