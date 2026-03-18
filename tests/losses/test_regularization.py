@@ -1,5 +1,3 @@
-from glassboxml.data.generators import generate_regression_dataset
-from glassboxml.models.linear_regression import LinearRegression
 from glassboxml.losses.regularization import L1Regularization, L2Regularization
 import numpy as np
 
