@@ -56,7 +56,12 @@ class DecisionTree:
                 right_data.append(X[i])
                 y_right.append(y[i])
 
-        return left_data, right_data, y_left, y_right
+        return (
+            np.array(left_data),
+            np.array(right_data),
+            np.array(y_left),
+            np.array(y_right)
+        )
 
     def calculate_gini(self, y):
         _, counts = np.unique(y, return_counts=True)
@@ -96,10 +101,13 @@ class DecisionTree:
         
         return best_feature, best_threshold
     
+    def predict(self, X):
+        return np.array([self.predict_sample(x, self.root) for x in X])
+
     def predict_sample(self, x, node):
         if isinstance(node, Leaf):
             return node.value
-        
+
         if x[node.best_feature] <= node.best_threshold:
             return self.predict_sample(x, node.left_child)
         else:

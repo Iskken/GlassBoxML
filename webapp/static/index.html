@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GlassBoxML Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .subtitle { color: #64748b; font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      background: white;
+      color: #1e293b;
+    }
+    select:focus, input:focus { outline: 2px solid #3b82f6; border-color: transparent; }
+
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.6rem;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #1d4ed8; }
+    button:disabled { background: #93c5fd; cursor: not-allowed; }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .metric-chip {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.8rem;
+      font-family: monospace;
+    }
+    .metric-chip span { color: #2563eb; font-weight: 700; }
+
+    #chart-wrap { position: relative; height: 380px; }
+    #error { color: #dc2626; font-size: 0.875rem; margin-top: 0.5rem; }
+    #results { display: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>GlassBoxML — Interactive Demo</h1>
+  <p class="subtitle">Train hand-built ML algorithms on synthetic data and inspect the result.</p>
+
+  <div class="card">
+    <label for="algorithm">Algorithm</label>
+    <select id="algorithm" onchange="updateParams()">
+      <option value="linear_regression">Linear Regression (1D, gradient descent)</option>
+      <option value="logistic_regression">Logistic Regression (2D, gradient descent)</option>
+      <option value="decision_tree">Decision Tree (2D, Gini impurity)</option>
+    </select>
+
+    <div class="params-grid" id="params"></div>
+
+    <button id="run-btn" onclick="run()">Run</button>
+    <div id="error"></div>
+  </div>
+
+  <div class="card" id="results">
+    <div class="metrics" id="metrics"></div>
+    <div id="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+</div>
+
+<script>
+  const PARAMS = {
+    linear_regression: [
+      { id: "n_samples",     label: "Samples",       value: 150, min: 20,   max: 500,  step: 10  },
+      { id: "noise_std",     label: "Noise std",     value: 0.5, min: 0,    max: 3,    step: 0.1 },
+      { id: "epochs",        label: "Epochs",        value: 500, min: 10,   max: 5000, step: 10  },
+      { id: "learning_rate", label: "Learning rate", value: 0.05, min: 0.001, max: 1,  step: 0.001 },
+    ],
+    logistic_regression: [
+      { id: "n_samples",     label: "Samples",       value: 200, min: 20,   max: 500,  step: 10  },
+      { id: "noise_std",     label: "Noise std",     value: 0.3, min: 0,    max: 3,    step: 0.1 },
+      { id: "epochs",        label: "Epochs",        value: 500, min: 10,   max: 5000, step: 10  },
+      { id: "learning_rate", label: "Learning rate", value: 0.1, min: 0.001, max: 1,  step: 0.001 },
+    ],
+    decision_tree: [
+      { id: "n_samples", label: "Samples",   value: 200, min: 20, max: 500, step: 10 },
+      { id: "noise_std", label: "Noise std", value: 0.3, min: 0,  max: 3,   step: 0.1 },
+      { id: "max_depth", label: "Max depth", value: 3,   min: 1,  max: 10,  step: 1  },
+    ],
+  };
+
+  let chart = null;
+
+  function updateParams() {
+    const algo = document.getElementById("algorithm").value;
+    document.getElementById("params").innerHTML = PARAMS[algo].map(p => `
+      <div>
+        <label for="${p.id}">${p.label}</label>
+        <input id="${p.id}" type="number" value="${p.value}"
+               min="${p.min}" max="${p.max}" step="${p.step}">
+      </div>
+    `).join("");
+    document.getElementById("results").style.display = "none";
+    document.getElementById("error").textContent = "";
+    if (chart) { chart.destroy(); chart = null; }
+  }
+
+  function getBody() {
+    const algo = document.getElementById("algorithm").value;
+    const body = { algorithm: algo };
+    for (const p of PARAMS[algo]) {
+      body[p.id] = parseFloat(document.getElementById(p.id).value);
+    }
+    return body;
+  }
+
+  async function run() {
+    const btn = document.getElementById("run-btn");
+    btn.disabled = true;
+    btn.textContent = "Running…";
+    document.getElementById("error").textContent = "";
+
+    try {
+      const res = await fetch("/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(getBody()),
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        document.getElementById("error").textContent = data.error;
+        return;
+      }
+
+      document.getElementById("results").style.display = "block";
+      renderMetrics(data.metrics);
+      renderChart(document.getElementById("algorithm").value, data);
+    } catch (e) {
+      document.getElementById("error").textContent = "Request failed: " + e.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Run";
+    }
+  }
+
+  function renderMetrics(metrics) {
+    document.getElementById("metrics").innerHTML = Object.entries(metrics)
+      .map(([k, v]) => `<div class="metric-chip">${k}: <span>${v}</span></div>`)
+      .join("");
+  }
+
+  function renderChart(algo, data) {
+    if (chart) chart.destroy();
+    const ctx = document.getElementById("chart").getContext("2d");
+
+    if (algo === "linear_regression") {
+      chart = new Chart(ctx, {
+        type: "scatter",
+        data: {
+          datasets: [
+            {
+              label: "Data points",
+              data: data.scatter.x.map((x, i) => ({ x, y: data.scatter.y[i] })),
+              backgroundColor: "rgba(59,130,246,0.45)",
+              pointRadius: 4,
+            },
+            {
+              label: "Fitted line",
+              type: "line",
+              data: data.line.x.map((x, i) => ({ x, y: data.line.y[i] })),
+              borderColor: "rgba(220,38,38,0.85)",
+              borderWidth: 2,
+              pointRadius: 0,
+              tension: 0,
+            },
+          ],
+        },
+        options: {
+          animation: false,
+          plugins: { legend: { position: "top" } },
+          scales: { x: { title: { display: true, text: "x" } }, y: { title: { display: true, text: "y" } } },
+        },
+      });
+      return;
+    }
+
+    // Classification (logistic regression or decision tree)
+    const pts = data.scatter.x1.map((x1, i) => ({
+      x: x1, y: data.scatter.x2[i], label: data.scatter.labels[i],
+    }));
+    const c0 = pts.filter(p => p.label === 0).map(p => ({ x: p.x, y: p.y }));
+    const c1 = pts.filter(p => p.label === 1).map(p => ({ x: p.x, y: p.y }));
+
+    const datasets = [
+      { label: "Class 0", data: c0, backgroundColor: "rgba(59,130,246,0.55)", pointRadius: 4 },
+      { label: "Class 1", data: c1, backgroundColor: "rgba(220,38,38,0.55)", pointRadius: 4 },
+    ];
+
+    if (algo === "logistic_regression" && data.boundary) {
+      datasets.push({
+        label: "Decision boundary",
+        type: "line",
+        data: data.boundary.x1.map((x, i) => ({ x, y: data.boundary.x2[i] })),
+        borderColor: "rgba(22,163,74,0.9)",
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0,
+      });
+    }
+
+    chart = new Chart(ctx, {
+      type: "scatter",
+      data: { datasets },
+      options: {
+        animation: false,
+        plugins: { legend: { position: "top" } },
+        scales: { x: { title: { display: true, text: "x₁" } }, y: { title: { display: true, text: "x₂" } } },
+      },
+    });
+  }
+
+  // Initialise param form
+  updateParams();
+</script>
+</body>
+</html>
