@@ -1,0 +1,13 @@
+.venv
+.git
+.github
+.pytest_cache
+.ipynb_checkpoints
+**/__pycache__
+**/*.pyc
+glassboxml.egg-info
+tests
+benchmarks
+experiments
+README.md
+LICENSE
