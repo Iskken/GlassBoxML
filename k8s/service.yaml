@@ -1,0 +1,12 @@
+# Exposes the glassboxml-webapp Pod so it can be reached from outside the cluster.
+apiVersion: v1              # Core API group/version that defines the Service resource
+kind: Service                # Resource type: stable network endpoint in front of Pods
+metadata:
+  name: glassboxml-webapp    # Name of this Service object
+spec:
+  type: NodePort              # Exposes the Service on a static port on the minikube node itself
+  selector:
+    app: glassboxml-webapp    # Routes traffic to Pods with this label (must match the Deployment's Pod labels)
+  ports:
+    - port: 8000               # Port the Service listens on inside the cluster
+      targetPort: 8000          # Port on the Pod to forward traffic to (matches containerPort)
