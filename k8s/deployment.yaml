@@ -1,0 +1,21 @@
+# Runs one Pod of the glassboxml-webapp image and keeps it running.
+apiVersion: apps/v1        # API group/version that defines the Deployment resource
+kind: Deployment            # Resource type: manages a set of identical Pods
+metadata:
+  name: glassboxml-webapp   # Name of this Deployment object
+spec:
+  replicas: 1                # Run a single Pod (no redundancy/scaling needed locally)
+  selector:
+    matchLabels:
+      app: glassboxml-webapp   # Tells the Deployment which Pods it owns/manages
+  template:                    # Pod template used to create each replica
+    metadata:
+      labels:
+        app: glassboxml-webapp   # Must match spec.selector.matchLabels above
+    spec:
+      containers:
+        - name: glassboxml-webapp        # Name of the container within the Pod
+          image: glassboxml-webapp         # Image built locally via `docker build -t glassboxml-webapp .`
+          imagePullPolicy: Never           # Never pull from a registry — use the image already present in minikube's Docker daemon
+          ports:
+            - containerPort: 8000          # Port the FastAPI/uvicorn server listens on inside the container
