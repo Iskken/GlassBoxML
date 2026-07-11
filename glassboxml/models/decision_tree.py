@@ -34,6 +34,11 @@ class DecisionTree:
         
         best_feature, best_threshold = self.find_best_split(X, y)
 
+        # No split improves purity (e.g. remaining samples have identical features
+        # but different labels) -> stop growing here instead of forcing a split
+        if best_feature is None:
+            return Leaf(y)
+
         left_data, right_data, y_left, y_right = self.split(X, y, best_feature, best_threshold)
 
         left_child = self.build_tree(left_data, y_left, depth+1)
@@ -71,8 +76,10 @@ class DecisionTree:
     def find_best_split(self, X, y):
         n_samples, n_features = X.shape
         best_IG = 0
-        best_feature = 0
-        best_threshold = 0
+        # None signals "no split found" so build_tree can fall back to a leaf,
+        # instead of defaulting to an arbitrary (feature 0, threshold 0) split
+        best_feature = None
+        best_threshold = None
 
         gini_parent = self.calculate_gini(y)
 
@@ -80,7 +87,8 @@ class DecisionTree:
             values = np.unique(X[:, f])
             thresholds = (values[:-1] + values[1:])/2
             for t in thresholds:
-                left_idx = X[:,f] < t
+                # <= / > here must match the partition split() actually performs
+                left_idx = X[:,f] <= t
                 right_idx = X[:,f] > t
 
                 if (len(y[left_idx]) == 0 or len(y[right_idx]) == 0):

@@ -10,6 +10,7 @@ from glassboxml.data.generators import (
     generate_classification_dataset,
     generate_regression_dataset,
 )
+from glassboxml.metrics.classification import accuracy as accuracy_metric
 from glassboxml.metrics.regression import rmse as rmse_metric
 from glassboxml.models.decision_tree import DecisionTree
 from glassboxml.models.linear_regression import LinearRegression
@@ -82,7 +83,7 @@ def _logistic_regression(req: RunRequest):
     model.fit(X, y, epochs=req.epochs, learning_rate=req.learning_rate)
 
     y_pred = model.predict(X)
-    accuracy = float(np.mean(y_pred == y))
+    accuracy = float(accuracy_metric(y, y_pred))
 
     # Decision boundary in 2D: w0*x0 + w1*x1 + b = 0  =>  x1 = -(w0*x0 + b) / w1
     x0_range = np.linspace(float(X[:, 0].min()), float(X[:, 0].max()), 60)
@@ -116,7 +117,7 @@ def _decision_tree(req: RunRequest):
     model.fit(X, y)
 
     y_pred = model.predict(X)
-    accuracy = float(np.mean(y_pred == y))
+    accuracy = float(accuracy_metric(y, y_pred))
 
     return {
         "scatter": {
