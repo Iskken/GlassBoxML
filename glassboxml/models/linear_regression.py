@@ -14,29 +14,27 @@ class LinearRegression:
         self.losses = []
         pass
 
-    def compute_b(self, X, y):
-        b = np.mean(y) - self.w @ np.mean(X)
-        return b
-
-    def compute_weight(self, X,y, pred_y):
-        # X is n by 1, y is n by 1, so (X - np.mean(X)).T @ (y - np.mean(y)) is 1 by 1,
-        # and np.sum((X - np.mean(X))**2) is a scalar, so the result is a scalar
-        w = (X - np.mean(X)).T @ (y - np.mean(y)) / np.sum((X - np.mean(X))**2)
-        return w
-
     def predict(self, X):
         pred_y = X @ self.w + self.b
         return pred_y
-    
+
     def fit_closed_form(self, X, y):
-        av_x = np.mean(X)
+        X = np.asarray(X)
+        y = np.asarray(y)
+
+        # Per-column mean, so this centers every feature independently
+        # (np.mean(X) alone would collapse a multi-feature X to one scalar)
+        av_x = np.mean(X, axis=0)
         av_y = np.mean(y)
 
-        numerator = (X - av_x).T @ (y - av_y)
-        denominator = np.sum((X - av_x)**2)
+        X_centered = X - av_x
+        y_centered = y - av_y
 
-        self.w = numerator / denominator
-        self.b = av_y - self.w * av_x
+        # Centering X and y removes the need for a bias column; lstsq solves
+        # the normal equations without explicitly inverting X^T X, which is
+        # both faster and numerically safer than np.linalg.inv
+        self.w, *_ = np.linalg.lstsq(X_centered, y_centered, rcond=None)
+        self.b = av_y - self.w @ av_x
 
     def fit_gradient_descent(self, X, y, epochs, learning_rate):
         # Initialize weights and bias
@@ -47,7 +45,12 @@ class LinearRegression:
 
         for epoch in range(epochs):
             pred_y = self.predict(X)
-            self.losses.append(mse.mse_loss(y, pred_y))
+            # Include the regularization penalty so self.losses reflects the
+            # actual objective being minimized, not just the MSE term
+            loss = mse.mse_loss(y, pred_y)
+            if self.regularization:
+                loss += self.regularization.loss(self.w)
+            self.losses.append(loss)
 
             # Calculate gradient for weight
             dw = (-2) / n_samples * X.T @ (y - pred_y) + (self.regularization.gradient(self.w) if self.regularization else 0)

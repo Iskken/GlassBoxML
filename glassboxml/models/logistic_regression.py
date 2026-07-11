@@ -10,6 +10,9 @@ class LogisticRegression:
         pass
     
     def sigmoid(self, z):
+        # Clip to avoid `exp` overflow warnings on large-magnitude z;
+        # doesn't change the result since sigmoid saturates to 0/1 well before this
+        z = np.clip(z, -500, 500)
         return 1 / (1 + np.exp(-z))
     
     def predict_proba(self, X):
@@ -48,7 +51,11 @@ class LogisticRegression:
 
             optimizer.step(params, grads)
 
+            # Include the regularization penalty so self.losses reflects the
+            # actual objective being minimized, not just the cross-entropy term
             loss = -np.mean(y * np.log(y_pred + self.epsilon) + (1 - y) * np.log(1 - y_pred + self.epsilon))
+            if self.regularization:
+                loss += self.regularization.loss(self.w)
             self.losses.append(loss)
 
             self.w = params['w']

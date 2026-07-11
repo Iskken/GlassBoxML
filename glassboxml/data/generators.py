@@ -29,16 +29,18 @@ def generate_regression_dataset(
     y : ndarray
     """
 
-    np.random.seed(random_seed)
+    # A local generator (rather than np.random.seed, which mutates global state)
+    # keeps this call from affecting any other code relying on numpy's global RNG
+    rng = np.random.default_rng(random_seed)
 
     w_true = np.array(w_true)
     n_features = len(w_true)
 
     #Generates input values with normal distribution where mean = 0, variance = 1
-    X = np.random.randn(n_samples, n_features)
+    X = rng.standard_normal((n_samples, n_features))
 
     #Generates one noise value per sample
-    noise = np.random.normal(0, noise_std, size=n_samples)  
+    noise = rng.normal(0, noise_std, size=n_samples)
 
     #Calculates true values of y: X multiplies true weights, @ is a matrix multiplication operator
     y = X @ w_true + b_true + noise
@@ -74,16 +76,18 @@ def generate_classification_dataset(
     y : ndarray
     """
 
-    np.random.seed(random_seed)
+    # A local generator (rather than np.random.seed, which mutates global state)
+    # keeps this call from affecting any other code relying on numpy's global RNG
+    rng = np.random.default_rng(random_seed)
 
     w_true = np.array(w_true)
     n_features = len(w_true)
 
     #Generates input values with normal distribution where mean = 0, variance = 1
-    X = np.random.randn(n_samples, n_features)
+    X = rng.standard_normal((n_samples, n_features))
 
     #Generates one noise value per sample
-    noise = np.random.normal(0, noise_std, size=n_samples)  
+    noise = rng.normal(0, noise_std, size=n_samples)
 
     #Calculates true values of y: X multiplies true weights, @ is a matrix multiplication operator
     linear_output = X @ w_true + b_true + noise
