@@ -9,7 +9,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 "This experiment tests the performance of my decision tree model against the one built by scikit-learn."
   
-"python -m experiments.decision_tree.experiment3"
+"python -m experiments.decision_tree.benchmark_vs_sklearn"
 
 # fetch dataset 
 # wine_quality = fetch_ucirepo(id=186) 

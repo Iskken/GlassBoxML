@@ -1,4 +1,4 @@
-from experiments.decision_tree.basic_dTree import DecisionTree
+from experiments.decision_tree.scratch_decision_tree import DecisionTree
 
 '''
 Purpose: Test the basic implementation of decision tree

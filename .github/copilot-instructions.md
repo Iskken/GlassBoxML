@@ -69,7 +69,7 @@ python -m pytest tests/test_linear_regression.py
 ```
 
 ### Using Experiments Notebook  
-`experiments/1var_linear_regession.ipynb` is for interactive exploration of single-variable regression. Add more notebooks here for new model experiments before adding to main codebase.
+`experiments/linear_regression/scratch_first_draft.ipynb` is for interactive exploration of single-variable regression. Add more notebooks here for new model experiments before adding to main codebase.
 
 ### Debugging Model Convergence
 - Check `model.losses` list after training - should be monotonic or plateau
@@ -91,4 +91,4 @@ python -m pytest tests/test_linear_regression.py
 - [linear_regression.py](../glassboxml/models/linear_regression.py) - Primary model reference
 - [generators.py](../glassboxml/data/generators.py) - Data generation patterns
 - [test_linear_regression.py](../tests/test_linear_regression.py) - Testing patterns
-- [1var_linear_regession.ipynb](../experiments/1var_linear_regession.ipynb) - Experimental workflow
+- [scratch_first_draft.ipynb](../experiments/linear_regression/scratch_first_draft.ipynb) - Experimental workflow
