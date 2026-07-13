@@ -1,4 +1,5 @@
 import numpy as np
+from collections import Counter
 from glassboxml.distances.distances import calculate_euclidean
 
 class KNN:
@@ -13,13 +14,12 @@ class KNN:
         return np.array([self._predict_sample(x) for x in np.array(X)])
 
     def _predict_sample(self, x):
-        distances = []
-        for i in range(len(self.X_train)):
-            distances.append((calculate_euclidean(self.X_train[i], x), i))
+        #Use vectorized calculations for calculating distances
+        distances = np.linalg.norm(self.X_train - x, axis=1)
 
-        k_closest_points = sorted(distances)[:self.k]
-        if np.sum([1 if self.y_train[i] == 1 else 0 for _, i in k_closest_points]) > (self.k / 2):
-            result = 1
-        else:
-            result = 0
+        #Use argpartition to obtain k closest neighbours
+        partitioned_indices = np.argpartition(distances, self.k) #Put k closest elements at the front of the index list
+        k_closest_indices = partitioned_indices[:self.k]
+
+        result = Counter(self.y_train[k_closest_indices]).most_common(1)[0][0]
         return result
