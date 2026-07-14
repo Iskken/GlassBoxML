@@ -1,8 +1,7 @@
 import numpy as np
 from collections import Counter
-from glassboxml.distances.distances import calculate_euclidean
 
-class KNN:
+class _KNNBase:
     def __init__(self, k=5):
         self.k = k
 
@@ -13,7 +12,7 @@ class KNN:
     def predict(self, X):
         return np.array([self._predict_sample(x) for x in np.array(X)])
 
-    def _predict_sample(self, x):
+    def _k_nearest_labels(self, x):
         #Use vectorized calculations for calculating distances
         distances = np.linalg.norm(self.X_train - x, axis=1)
 
@@ -21,5 +20,17 @@ class KNN:
         partitioned_indices = np.argpartition(distances, self.k) #Put k closest elements at the front of the index list
         k_closest_indices = partitioned_indices[:self.k]
 
-        result = Counter(self.y_train[k_closest_indices]).most_common(1)[0][0]
-        return result
+        return self.y_train[k_closest_indices]
+
+    def _predict_sample(self, x):
+        raise NotImplementedError
+
+class KNNClassifier(_KNNBase):
+    def _predict_sample(self, x):
+        k_labels = self._k_nearest_labels(x)
+        return Counter(k_labels).most_common(1)[0][0]
+
+class KNNRegressor(_KNNBase):
+    def _predict_sample(self, x):
+        k_labels = self._k_nearest_labels(x)
+        return np.mean(k_labels)
