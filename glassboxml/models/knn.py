@@ -16,6 +16,13 @@ class _KNNBase:
         #Use vectorized calculations for calculating distances
         distances = np.linalg.norm(self.X_train - x, axis=1)
 
+        # argpartition(distances, k) needs an extra element past the k we
+        # keep to anchor the partition, so it only works for k < n_samples.
+        # If k covers the whole training set (or more), there's nothing to
+        # partition - every point is a "k nearest" neighbour.
+        if self.k >= len(distances):
+            return self.y_train
+
         #Use argpartition to obtain k closest neighbours
         partitioned_indices = np.argpartition(distances, self.k) #Put k closest elements at the front of the index list
         k_closest_indices = partitioned_indices[:self.k]
