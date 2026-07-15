@@ -95,6 +95,7 @@
       <option value="linear_regression">Linear Regression (1D, gradient descent)</option>
       <option value="logistic_regression">Logistic Regression (2D, gradient descent)</option>
       <option value="decision_tree">Decision Tree (2D, Gini impurity)</option>
+      <option value="knn">K-Nearest Neighbours (2D, majority vote)</option>
     </select>
 
     <div class="params-grid" id="params"></div>
@@ -127,6 +128,11 @@
       { id: "n_samples", label: "Samples",   value: 200, min: 20, max: 500, step: 10 },
       { id: "noise_std", label: "Noise std", value: 0.3, min: 0,  max: 3,   step: 0.1 },
       { id: "max_depth", label: "Max depth", value: 3,   min: 1,  max: 10,  step: 1  },
+    ],
+    knn: [
+      { id: "n_samples", label: "Samples",   value: 200, min: 20, max: 500, step: 10 },
+      { id: "noise_std", label: "Noise std", value: 0.3, min: 0,  max: 3,   step: 0.1 },
+      { id: "k", label: "k (neighbors)", value: 5, min: 1, max: 25, step: 1 },
     ],
   };
 

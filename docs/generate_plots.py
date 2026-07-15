@@ -9,6 +9,7 @@ from glassboxml.data.generators import (
     generate_regression_dataset,
 )
 from glassboxml.models.decision_tree import DecisionTree
+from glassboxml.models.knn import KNNClassifier
 from glassboxml.models.linear_regression import LinearRegression
 from glassboxml.models.logistic_regression import LogisticRegression
 
@@ -87,8 +88,36 @@ def plot_decision_tree():
     plt.close()
 
 
+def plot_knn():
+    X, y, w_true, b_true = generate_classification_dataset(
+        w_true=[1.5, -2.0], b_true=0.5, n_samples=300, noise_std=0.5,
+    )
+    model = KNNClassifier(k=5)
+    model.fit(X, y)
+
+    x0_min, x0_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+    x1_min, x1_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+    xx0, xx1 = np.meshgrid(
+        np.linspace(x0_min, x0_max, 200),
+        np.linspace(x1_min, x1_max, 200),
+    )
+    grid = np.column_stack([xx0.ravel(), xx1.ravel()])
+    zz = model.predict(grid).reshape(xx0.shape)
+
+    plt.figure(figsize=(6, 4.5))
+    plt.contourf(xx0, xx1, zz, alpha=0.3, cmap="coolwarm")
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap="coolwarm", alpha=0.8, edgecolors="k", linewidths=0.3)
+    plt.title(f"K-Nearest Neighbors (k={model.k})")
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.tight_layout()
+    plt.savefig(f"{OUT_DIR}/knn.png", dpi=150)
+    plt.close()
+
+
 if __name__ == "__main__":
     plot_linear_regression()
     plot_logistic_regression()
     plot_decision_tree()
+    plot_knn()
     print(f"Saved plots to {OUT_DIR}/")
