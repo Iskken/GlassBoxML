@@ -15,6 +15,7 @@ from glassboxml.metrics.regression import rmse as rmse_metric
 from glassboxml.models.decision_tree import DecisionTree
 from glassboxml.models.linear_regression import LinearRegression
 from glassboxml.models.logistic_regression import LogisticRegression
+from glassboxml.models.knn import KNNRegressor, KNNClassifier
 
 STATIC = Path(__file__).parent / "static"
 
@@ -29,6 +30,7 @@ class RunRequest(BaseModel):
     epochs: int = 500
     learning_rate: float = 0.1
     max_depth: int = 3
+    k: int = 5
 
 
 @app.get("/")
@@ -44,6 +46,8 @@ def run(req: RunRequest):
         return _logistic_regression(req)
     if req.algorithm == "decision_tree":
         return _decision_tree(req)
+    if req.algorithm == "knn":
+        return _knn(req)
     return {"error": f"Unknown algorithm: {req.algorithm}"}
 
 
@@ -129,5 +133,30 @@ def _decision_tree(req: RunRequest):
         "metrics": {
             "accuracy": f"{round(accuracy * 100, 1)}%",
             "max_depth": req.max_depth,
+        },
+    }
+
+def _knn(req: RunRequest):
+    X, y, _, _ = generate_classification_dataset(
+        w_true=[1.5, -2.0], b_true=0.5,
+        n_samples=req.n_samples, noise_std=req.noise_std,
+    )
+
+    model = KNNClassifier(k = req.k)
+    model.fit(X,y)
+
+    y_pred = model.predict(X)
+    accuracy = float(accuracy_metric(y, y_pred))
+
+    return {
+        "scatter": {
+            "x1": X[:, 0].tolist(),
+            "x2": X[:, 1].tolist(),
+            "labels": y.tolist(),
+            "predicted": y_pred.tolist(),
+        },
+        "metrics": {
+            "accuracy": f"{round(accuracy * 100, 1)}%",
+            "k": req.k,
         },
     }

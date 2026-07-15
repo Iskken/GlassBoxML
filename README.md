@@ -25,6 +25,11 @@ Gini-impurity splitting, recursive binary partitioning, configurable max depth.
 
 ![Decision tree decision regions](docs/images/decision_tree.png)
 
+### K-Nearest Neighbors
+Instance-based classification (and regression) via majority vote / mean over the `k` closest training points, vectorized distance computation.
+
+![KNN decision regions](docs/images/knn.png)
+
 Plots were generated with `python docs/generate_plots.py` — rerun it after changing a model to refresh them.
 
 ## Project layout
