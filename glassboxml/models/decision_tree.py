@@ -17,8 +17,11 @@ class Node:
         self.right_child = right_child
 
 class DecisionTree:
-    def __init__(self, max_depth):
+    def __init__(self, max_depth, max_features=None):
         self.max_depth = max_depth
+        # None = consider every feature at every split (current/unchanged behavior).
+        # Otherwise, the number of features to randomly sample per split (e.g. sqrt(n_features)).
+        self.max_features = max_features
         self.root = None
 
     def fit(self, X, y):
@@ -73,6 +76,11 @@ class DecisionTree:
         probs = counts / counts.sum()
         return 1 - np.sum(probs ** 2)
 
+    def _sample_feature_indices(self, n_features):
+        rng = np.random.default_rng()
+
+        return rng.choice(n_features, size = self.max_features, replace=False)
+
     def find_best_split(self, X, y):
         n_samples, n_features = X.shape
         best_IG = 0
@@ -83,7 +91,9 @@ class DecisionTree:
 
         gini_parent = self.calculate_gini(y)
 
-        for f in range(n_features):
+        current_features = self._sample_feature_indices(n_features)
+
+        for f in current_features:
             values = np.unique(X[:, f])
             thresholds = (values[:-1] + values[1:])/2
             for t in thresholds:
