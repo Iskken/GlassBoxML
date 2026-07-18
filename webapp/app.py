@@ -16,6 +16,7 @@ from glassboxml.models.decision_tree import DecisionTree
 from glassboxml.models.linear_regression import LinearRegression
 from glassboxml.models.logistic_regression import LogisticRegression
 from glassboxml.models.knn import KNNRegressor, KNNClassifier
+from glassboxml.models.random_forest import RandomForest
 
 STATIC = Path(__file__).parent / "static"
 
@@ -31,6 +32,8 @@ class RunRequest(BaseModel):
     learning_rate: float = 0.1
     max_depth: int = 3
     k: int = 5
+    n_trees: int = 10
+    max_features: int = None
 
 
 @app.get("/")
@@ -48,6 +51,8 @@ def run(req: RunRequest):
         return _decision_tree(req)
     if req.algorithm == "knn":
         return _knn(req)
+    if req.algorithm == "random_forest":
+        return _random_forest(req)
     return {"error": f"Unknown algorithm: {req.algorithm}"}
 
 
@@ -158,5 +163,37 @@ def _knn(req: RunRequest):
         "metrics": {
             "accuracy": f"{round(accuracy * 100, 1)}%",
             "k": req.k,
+        },
+    }
+
+def _random_forest(req: RunRequest):
+    X, y, _, _ = generate_classification_dataset(
+        w_true=[1.5, -2.0], b_true=0.5,
+        n_samples=req.n_samples, noise_std=req.noise_std,
+    )
+
+    model = RandomForest(n=req.n_trees, max_features=req.max_features)
+    model.fit(X,y)
+
+    y_pred = model.predict(X)
+    # Training accuracy: how well the forest fits the data it was shown -
+    # can look deceptively high since trees can nearly memorize training points
+    training_accuracy = float(accuracy_metric(y, y_pred))
+    # OOB accuracy: each tree scored on the points it never saw during its own
+    # training - a much more honest, generalization-like estimate, for free
+    oob_accuracy = float(model.accuracy)
+
+    return {
+        "scatter": {
+            "x1": X[:, 0].tolist(),
+            "x2": X[:, 1].tolist(),
+            "labels": y.tolist(),
+            "predicted": y_pred.tolist(),
+        },
+        "metrics": {
+            "training_accuracy": f"{round(training_accuracy * 100, 1)}%",
+            "oob_accuracy": f"{round(oob_accuracy * 100, 1)}%",
+            "n_trees": req.n_trees,
+            "max_features": int(model.max_features)
         },
     }
