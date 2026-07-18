@@ -52,12 +52,7 @@ class RandomForest:
             ))
 
         self.models = [model for model, _ in results]
-        # A tree's bootstrap sample can, by chance, cover every original index,
-        # leaving its OOB set empty - accuracy() on an empty array is nan, and
-        # a plain mean would let a single nan wipe out the whole average.
-        # nanmean instead treats "no OOB samples for this tree" as no
-        # information, and just excludes it from the estimate.
-        self.accuracy = np.nanmean([tree_accuracy for _, tree_accuracy in results])
+        self.accuracy = np.mean([tree_accuracy for _, tree_accuracy in results])
 
     def predict(self, X):
         # Each tree's own vectorized predict() returns every sample's

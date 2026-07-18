@@ -28,6 +28,9 @@ class DecisionTree:
         X = np.array(X)
         y = np.array(y)
 
+        if self.max_features == None:
+            self.max_features = X.shape[1]
+
         self.root = self.build_tree(X,y, 0)
     
     def build_tree(self, X, y, depth):
